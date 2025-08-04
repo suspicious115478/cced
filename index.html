@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firestore Admin Viewer</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    li { cursor: pointer; margin: 5px 0; }
+    .user { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Select Date:</h2>
+  <input type="date" id="datePicker" />
+  <button onclick="fetchUsers()">Get Users</button>
+
+  <h3>Users Active on Date:</h3>
+  <ul id="userList"></ul>
+
+  <h3>Transactions:</h3>
+  <ul id="transactionList"></ul>
+
+  <script>
+    async function fetchUsers() {
+      const date = document.getElementById("datePicker").value;
+      if (!date) return alert("Select a date");
+      const res = await fetch(`/users/${date}`);
+      const users = await res.json();
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+      document.getElementById("transactionList").innerHTML = "";
+
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.classList.add("user");
+        li.innerText = user.name;
+        li.onclick = () => fetchTransactions(user.uid, date);
+        userList.appendChild(li);
+      });
+    }
+
+    async function fetchTransactions(uid, date) {
+      const res = await fetch(`/transactions/${uid}/${date}`);
+      const txns = await res.json();
+      const txnList = document.getElementById("transactionList");
+      txnList.innerHTML = "";
+
+      txns.forEach(txn => {
+        const li = document.createElement("li");
+        li.innerText = `₹${txn.amount} at ${txn.time}`;
+        txnList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
