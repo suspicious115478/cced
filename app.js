@@ -6,19 +6,26 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Load service account key from ENV
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+// ✅ Load service account from environment variable
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} catch (err) {
+  console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT:', err.message);
+  process.exit(1); // Exit if credentials not found
+}
 
+// ✅ Initialize Firebase Admin
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
 
-// Serve frontend
+// ✅ Serve static frontend from 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API endpoint (adjust as needed)
+// ✅ API endpoint to get users with expenses on a specific date
 app.get('/users/:date', async (req, res) => {
   try {
     const { date } = req.params;
@@ -40,12 +47,12 @@ app.get('/users/:date', async (req, res) => {
 
     res.json(activeUsers);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('🔥 Firestore Query Error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
+// ✅ Start the server
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`🚀 Server is running on http://localhost:${port}`);
 });
-
